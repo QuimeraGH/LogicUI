@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use std::fs::{File, create_dir_all};
 use std::path::Path;
 use std::io::prelude::*;

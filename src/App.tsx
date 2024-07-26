@@ -281,8 +281,8 @@ function App() {
         setEdges(parsedData.edges);
         
       }
-    } catch (error) {
-      console.error('Error selecting directory:', error);
+    } catch (_error) {
+
     }
   }
 
