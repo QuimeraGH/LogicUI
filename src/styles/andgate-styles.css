@@ -1,0 +1,17 @@
+.and-node {
+  height: 50px;
+  width: 70px;
+  border: none;
+  background-image: url("../assets/andgate.png");
+  background-repeat: no-repeat;
+  background-size: 7rem 9rem;
+  image-rendering: pixelated;
+  background-position: center 50%;
+  }
+  
+.and-node label {
+    display: block;
+    color: #777;
+    font-size: 12px;
+    
+  }
