@@ -27,6 +27,9 @@
   display: flex;
   justify-content: space-around;
   flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+  height: 100vh;
 }
 
 .sidebar {
@@ -50,7 +53,7 @@
 .canvasdiv {
   flex: auto;
   background-color: #141414;
-
+  margin-left: 1rem;
 }
 
 .controls {

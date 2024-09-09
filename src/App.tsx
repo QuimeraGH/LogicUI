@@ -66,8 +66,6 @@ function App() {
     }
   };
 
-  // updating values
-
   const areNodesEqual = (nodes1: string | any[], nodes2: string | any[]) => {
     if (nodes1.length !== nodes2.length) return false;
     for (let i = 0; i < nodes1.length; i++) {
@@ -78,111 +76,98 @@ function App() {
     return true;
   };  
 
+  // First Refactor
+
+  const calculateGateValue = (input1Value: number, input2Value: number, operation: (a: number, b: number) => number) => {
+    return operation(input1Value, input2Value);
+  };
+
+  const updateGateNode = (
+    currentNodes: any[],
+    currentEdges: any[],
+    node: any,
+    operation: (a: number, b: number) => number
+  ) => {
+    const input1Edge = currentEdges.find((edge: any) => edge.target === node.id && edge.targetHandle === 'a');
+    const input2Edge = currentEdges.find((edge: any) => edge.target === node.id && edge.targetHandle === 'b');
+    const outputEdge = currentEdges.find((edge: any) => edge.source === node.id && edge.sourceHandle === 'c');
+  
+    const input1Node = input1Edge ? currentNodes.find((n: any) => n.id === input1Edge.source) : null;
+    const input2Node = input2Edge ? currentNodes.find((n: any) => n.id === input2Edge.source) : null;
+    const outputNode = outputEdge ? currentNodes.find((n: any) => n.id === outputEdge.target) : null;
+  
+    const input1Value = input1Node ? input1Node.data.value : 0;
+    const input2Value = input2Node ? input2Node.data.value : 0;
+    const newValue = calculateGateValue(input1Value, input2Value, operation);
+  
+    if (node.data.value !== newValue) {
+      node.data.value = newValue;
+      if (outputNode) {
+        outputNode.data.value = newValue;
+      }
+    }
+  
+    return node;
+  };
+
   const updateNodeValues = (currentNodes: any[], currentEdges: any[]) => {
-    const updatedNodes = currentNodes.map((node: any) => {
-      if (node.type === 'outputnode') {
-        const connectedEdge = currentEdges.find((edge: any) => edge.target === node.id);
-        if (connectedEdge) {
-          const inputNode = currentNodes.find((n: any) => n.id === connectedEdge.source);
-          if (inputNode && node.data.value !== inputNode.data.value) {
-            return { ...node, data: { ...node.data, value: inputNode.data.value } };
-          }
-        }
-      }
-      if (node.type === 'andnode') {
-        const input1Edge = currentEdges.find((edge: any) => edge.target === node.id && edge.targetHandle === 'a');
-        const input2Edge = currentEdges.find((edge: any) => edge.target === node.id && edge.targetHandle === 'b');
-        const outputEdge = currentEdges.find((edge: any) => edge.source === node.id && edge.sourceHandle === 'c');
-
-        const input1Node = input1Edge ? currentNodes.find((n: any) => n.id === input1Edge.source) : null;
-        const input2Node = input2Edge ? currentNodes.find((n: any) => n.id === input2Edge.source) : null;
-        const outputNode = outputEdge ? currentNodes.find((n: any) => n.id === outputEdge.target) : null;
-
-        const input1Value = input1Node ? input1Node.data.value : 0;
-        const input2Value = input2Node ? input2Node.data.value : 0;
-        const newValue = input1Value & input2Value;
-
-        if (node.data.value !== newValue) {
-          node.data.value = newValue;
-          if (outputNode) {
-            outputNode.data.value = newValue;
-          }
-        }
-      }
-      if (node.type === 'ornode') {
-        const input1Edge = currentEdges.find((edge: any) => edge.target === node.id && edge.targetHandle === 'a');
-        const input2Edge = currentEdges.find((edge: any) => edge.target === node.id && edge.targetHandle === 'b');
-        const outputEdge = currentEdges.find((edge: any) => edge.source === node.id && edge.sourceHandle === 'c');
-
-        const input1Node = input1Edge ? currentNodes.find((n: any) => n.id === input1Edge.source) : null;
-        const input2Node = input2Edge ? currentNodes.find((n: any) => n.id === input2Edge.source) : null;
-        const outputNode = outputEdge ? currentNodes.find((n: any) => n.id === outputEdge.target) : null;
-
-        const input1Value = input1Node ? input1Node.data.value : 0;
-        const input2Value = input2Node ? input2Node.data.value : 0;
-        const newValue = input1Value | input2Value;
-
-        if (node.data.value !== newValue) {
-          node.data.value = newValue;
-          if (outputNode) {
-            outputNode.data.value = newValue;
-          }
-        }
-      }
-      if (node.type === 'xornode') {
-        const input1Edge = currentEdges.find((edge: any) => edge.target === node.id && edge.targetHandle === 'a');
-        const input2Edge = currentEdges.find((edge: any) => edge.target === node.id && edge.targetHandle === 'b');
-        const outputEdge = currentEdges.find((edge: any) => edge.source === node.id && edge.sourceHandle === 'c');
-
-        const input1Node = input1Edge ? currentNodes.find((n: any) => n.id === input1Edge.source) : null;
-        const input2Node = input2Edge ? currentNodes.find((n: any) => n.id === input2Edge.source) : null;
-        const outputNode = outputEdge ? currentNodes.find((n: any) => n.id === outputEdge.target) : null;
-
-        const input1Value = input1Node ? input1Node.data.value : 0;
-        const input2Value = input2Node ? input2Node.data.value : 0;
-        const newValue = input1Value ^ input2Value;
-
-        if (node.data.value !== newValue) {
-          node.data.value = newValue;
-          if (outputNode) {
-            outputNode.data.value = newValue;
-          }
-        }
-      }
-      if (node.type === 'notnode') {
-        const inputEdge = currentEdges.find((edge: any) => edge.target === node.id);
-        const inputNode = inputEdge ? currentNodes.find((n: any) => n.id === inputEdge.source) : null;
-        const inputValue = inputNode ? inputNode.data.value : 0;
-        const newValue = inputValue === 1 ? 0 : 1;
-
-        if (node.data.value !== newValue) {
-          node.data.value = newValue;
-          const outputEdge = currentEdges.find((edge: any) => edge.source === node.id);
-          if (outputEdge) {
-            const outputNode = currentNodes.find((n: any) => n.id === outputEdge.target);
-            if (outputNode) {
-              outputNode.data.value = newValue;
+    return currentNodes.map((node: any) => {
+      switch (node.type) {
+        case 'outputnode': {
+          const connectedEdge = currentEdges.find((edge: any) => edge.target === node.id);
+          if (connectedEdge) {
+            const inputNode = currentNodes.find((n: any) => n.id === connectedEdge.source);
+            if (inputNode && node.data.value !== inputNode.data.value) {
+              return { ...node, data: { ...node.data, value: inputNode.data.value } };
             }
           }
+          break;
         }
+        case 'andnode':
+          return updateGateNode(currentNodes, currentEdges, node, (a, b) => a & b);
+  
+        case 'ornode':
+          return updateGateNode(currentNodes, currentEdges, node, (a, b) => a | b);
+  
+        case 'xornode':
+          return updateGateNode(currentNodes, currentEdges, node, (a, b) => a ^ b);
+  
+        case 'notnode': {
+          const inputEdge = currentEdges.find((edge: any) => edge.target === node.id);
+          const inputNode = inputEdge ? currentNodes.find((n: any) => n.id === inputEdge.source) : null;
+          const inputValue = inputNode ? inputNode.data.value : 0;
+          const newValue = inputValue === 1 ? 0 : 1;
+  
+          if (node.data.value !== newValue) {
+            node.data.value = newValue;
+            const outputEdge = currentEdges.find((edge: any) => edge.source === node.id);
+            if (outputEdge) {
+              const outputNode = currentNodes.find((n: any) => n.id === outputEdge.target);
+              if (outputNode) {
+                outputNode.data.value = newValue;
+              }
+            }
+          }
+          return node;
+        }
+  
+        default:
+          return node;
       }
       return node;
     });
-
-    return updatedNodes;
   };
 
+  const updateNodesRecursively = (currentNodes: any[], currentEdges: any[], iterations: number) => {
+    if (iterations === 0) return currentNodes;
+    const updatedNodes = updateNodeValues(currentNodes, currentEdges);
+    return updateNodesRecursively(updatedNodes, currentEdges, iterations - 1);
+  };
+  
   useEffect(() => {
-    const updateNodesRecursively = (currentNodes: any[], currentEdges: any[], iterations: number) => {
-      if (iterations === 0) return currentNodes;
-      const updatedNodes = updateNodeValues(currentNodes, currentEdges);
-      return updateNodesRecursively(updatedNodes, currentEdges, iterations - 1);
-    };
-
     let maxIterations = nodes.length;
-    console.log(maxIterations)
     const updatedNodes = updateNodesRecursively(nodes, edges, maxIterations);
-
+  
     if (!areNodesEqual(previousNodesRef.current, updatedNodes)) {
       setNodes(updatedNodes);
       previousNodesRef.current = updatedNodes;
@@ -190,34 +175,33 @@ function App() {
   }, [edges, nodes]);
 
 
-  const addNode = (type: any) => {
+  type NodeType = 'inputnode' | 'outputnode' | 'notnode' | 'andnode' | 'ornode' | 'xornode';
 
-    let newNode;
+  const addNode = (type: NodeType) => {
+    const commonData = {
+      id: type + Math.random(),
+      type,
+      position: { x: Math.random() * 100, y: Math.random() * 100 }
+    };
 
-    if (type == "inputnode" || type == "outputnode") {
-      newNode = {
-        id: type + Math.random(),
-        type,
-        position: { x: Math.random() * 100, y: Math.random() * 100 },
-        data: { value: 0 }
-      };
-    } else if (type == "notnode") {
-      newNode = {
-        id: type + Math.random(),
-        type,
-        position: { x: Math.random() * 100, y: Math.random() * 100 },
-        data: { value: 0 }
-      };
-    } else {
-      newNode = {
-        id: type + Math.random(),
-        type,
-        position: { x: Math.random() * 100, y: Math.random() * 100 },
-        data: { vala: 0, valb: 0, valc: 0 }
-      };
-    }
+    const nodeData: { [key in NodeType | 'default']: any } = {
+      inputnode: { data: { value: 0 } },
+      outputnode: { data: { value: 0 } },
+      notnode: { data: { value: 0 } },
+      andnode: { data: { vala: 0, valb: 0, valc: 0 } },
+      ornode: { data: { vala: 0, valb: 0, valc: 0 } },
+      xornode: { data: { vala: 0, valb: 0, valc: 0 } },
+      default: { data: { vala: 0, valb: 0, valc: 0 } }
+    };
+
+    const newNode = {
+      ...commonData,
+      ...nodeData[type]
+    };
+
     setNodes((nds) => [...nds, newNode]);
   };
+
 
   const addInputNode = () => addNode("inputnode");
   const addOutputNode = () => addNode("outputnode");
@@ -235,8 +219,19 @@ function App() {
   );
 
   const onEdgeDelete = useCallback(
-    (edgeId: any) => setEdges((eds) => eds.filter((e) => e.id !== edgeId)),
-    [setEdges]
+    (edgeId: any) => {
+      setEdges((eds) => eds.filter((e) => e.id !== edgeId));
+  
+      // Trigger the recursive node update after edge deletion
+      const maxIterations = nodes.length;
+      const updatedNodes = updateNodesRecursively(nodes, edges.filter((e) => e.id !== edgeId), maxIterations);
+  
+      if (!areNodesEqual(previousNodesRef.current, updatedNodes)) {
+        setNodes(updatedNodes);
+        previousNodesRef.current = updatedNodes;
+      }
+    },
+    [setEdges, nodes, edges]
   );
 
   // file management ------
